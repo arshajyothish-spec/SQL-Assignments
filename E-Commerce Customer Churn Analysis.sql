@@ -5757,16 +5757,17 @@ DESC customer_churn;
 -- ➢ Retrieve the count of churned and active customers from the dataset.
 SELECT ChurnStatus,count(*) Customer_count FROM customer_churn GROUP BY ChurnStatus ;
 
+
 -- ➢ Display the average tenure and total cashback amount of customers who churned.
 SELECT avg(Tenure) AS Average_Tenure,sum(Cashbackamount) AS Total_Cashback FROM customer_churn WHERE ChurnStatus="churned";
 
 
 -- ➢ Determine the percentage of churned customers who complained.
-
 SELECT
 SUM(CASE WHEN ComplaintReceived = 'Yes' THEN 1 ELSE 0 END)* 100.0 / COUNT(*) AS Complaint_Percentage
 FROM customer_churn
 WHERE ChurnStatus = 'Churned';
+
 
 -- ➢ Identify the city tier with the highest number of churned customers whose preferred order category is Laptop & Accessory.
 SELECT CityTier, COUNT(*) As Customer_Count FROM customer_churn 
@@ -5775,44 +5776,56 @@ GROUP BY CityTier
 ORDER BY Customer_Count DESC 
 LIMIT 1;
 
+
 -- ➢ Identify the most preferred payment mode among active customers
 SELECT PreferredPaymentMode, COUNT(*) AS Customer_count FROM customer_churn WHERE ChurnStatus="Active" GROUP BY PreferredPaymentMode ORDER BY Customer_Count DESC LIMIT 1;
+
 
 -- ➢ Calculate the total order amount hike from last year for customers who are single and prefer mobile phones for ordering.
 SELECT SUM(OrderAmountHikeFromlastYear) AS Total_orderAmountHike FROM customer_churn WHERE MaritalStatus="single" AND PreferredOrderCat= "Mobile_Phone";
 
+
 -- ➢ Find the average number of devices registered among customers who used UPI as their preferred payment mode
 SELECT AVG(NumberOfDeviceRegistered) AS Avg_No_Device FROM customer_churn WHERE preferredpaymentmode="UPI";
+
 
 -- ➢ Determine the city tier with the highest number of customers
 SELECT CityTier,count(*) AS Customer_Count FROM customer_churn GROUP BY CityTier ORDER BY Customer_Count DESC LIMIT 1;
 
+
 -- ➢ Identify the gender that utilized the highest number of coupons
 SELECT Gender,SUM(Couponused) AS Coupon_Used FROM customer_churn GROUP BY Gender ORDER BY Coupon_Used DESC LIMIT 1;
 
+
 -- ➢ List the number of customers and the maximum hours spent on the app in each preferred order category.
 SELECT Preferredordercat,count(*) AS No_Of_Customers,max(HoursSpentOnApp) AS Max_Hours FROM customer_churn GROUP BY Preferredordercat ;
+
 
 -- ➢ Calculate the total order count for customers who prefer using credit cards and have the maximum satisfaction score.
 SELECT sum(OrderCount)AS Total_Order_Count FROM customer_churn 
 WHERE PreferredPaymentMode="Credit Card" AND 
 SatisfactionScore=(SELECT max(SatisfactionScore)  FROM customer_churn);
 
+
 -- ➢ What is the average satisfaction score of customers who have complained?
 SELECT avg(SatisfactionScore) As Avg_satisfaction_Score FROM customer_churn WHERE ComplaintReceived="Yes";
+
 
 -- ➢ List the preferred order category among customers who used more than 5 coupons.
 SELECT DISTINCT PreferredOrderCat FROM customer_churn WHERE CouponUsed >5;
 
+
 -- ➢ List the top 3 preferred order categories with the highest average cashback amount.
 SELECT Preferredordercat,avg(CashbackAmount) FROM customer_churn GROUP BY Preferredordercat ORDER BY avg(CashbackAmount) DESC LIMIT 3;
 
+
 -- ➢ Find the preferred payment modes of customers whose average tenure is 10 months and have placed more than 500 orders.
-SELECT DISTINCT Preferredpaymentmode FROM customer_churn WHERE Tenure=10 AND OrderCount >500;
+SELECT PreferredPaymentMode,round(AVG(Tenure)) AS Average_Tenure,SUM(OrderCount) AS Total_Orders
+FROM customer_churn
+GROUP BY PreferredPaymentMode HAVING round(AVG(Tenure))=10 AND SUM(OrderCount) > 500 ;
 
-
+ 
 -- Categorize customers based on their distance from the warehouse to home such as 'Very Close Distance' for distances <=5km, 'Close Distance' for <=10km, 'Moderate Distance' for <=15km, and 'Far Distance' for >15km. Then, display the churn status breakdown for each distance category.
-
 SELECT 
 CASE
 WHEN warehousetohome <=5 THEN "Very Close Distance"
@@ -5823,8 +5836,10 @@ END  AS Distance_Status,ChurnStatus, count(*) AS Customer_Count FROM customer_ch
 GROUP BY Distance_Status,ChurnStatus
 ORDER BY Distance_Status  ,Churnstatus;
 
+
 -- ➢ List the customer’s order details who are married, live in City Tier-1, and their order counts are more than the average number of orders placed by all customers.
 SELECT * FROM customer_churn WHERE MaritalStatus="Married" AND citytier=1 AND  Ordercount > (SELECT avg(ordercount) FROM customer_churn);
+
 
 -- Create a ‘customer_returns’ table in the ‘ecomm’ database and insert the following data:
 CREATE TABLE customer_returns (ReturnID INT PRIMARY KEY AUTO_INCREMENT,
@@ -5833,6 +5848,7 @@ ReturnDate DATE ,
 RefundAmount INT,
 FOREIGN KEY (CustomerID) REFERENCES  customer_churn (CustomerID));
 DESC customer_returns;
+
 
 INSERT INTO customer_returns(ReturnID, CustomerID, ReturnDate, RefundAmount)
 VALUES
@@ -5846,6 +5862,7 @@ VALUES
 (1008, 54838, '2023-04-30', 1990);
 
 Select * FROM customer_returns;
+
 
 -- Display the return details along with the customer details of those who have churned and have made complaints.
 SELECT * FROM customer_returns cr
